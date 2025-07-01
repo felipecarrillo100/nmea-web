@@ -117,4 +117,4 @@ This library is open source and available under the [MIT License](https://openso
 
 ---
 
-**NMEA-Web: Navigational data, simplified.**
+**NMEA-Web: GPS, Navigational data, simplified.**
