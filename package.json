@@ -1,6 +1,6 @@
 {
   "name": "nmea-web",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Compact NMEA decoder in TypeScript for browser and web apps",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
