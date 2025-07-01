@@ -1,5 +1,8 @@
+// nmea-web - Lightweight NMEA 0183 parser (GGA and RMC only)
+// License MIT
+// This library is open source and available under the [MIT License](https://opensource.org/licenses/MIT). Contributions and feedback are welcome!
+// Author: Felipe Carrillo
 
-// nmea-browser.ts - Lightweight NMEA 0183 parser (GGA and RMC only)
 
 export interface Packet {
     sentenceId: string;
