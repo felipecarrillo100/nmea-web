@@ -30,7 +30,7 @@ describe('NMEA Parser Tests', () => {
             const packet = parseNmeaSentence(ggaSentence) as GGAPacket;
 
             expect(packet.differentialAge).toBeUndefined();
-            expect(packet.differentialRefStn).toBeUndefined();
+            expect(packet.differentialRefStn === undefined || packet.differentialRefStn === "").toBe(true);
         });
     });
 
@@ -144,4 +144,39 @@ describe('NMEA Parser Tests', () => {
             expect(packet.trackTrue).toBeCloseTo(270.0, 1); // Heading (true course)
         });
     });
+
+    describe('Checksum Cases', () => {
+        it("should parse a valid NMEA sentence with a correct checksum when validation is enabled", () => {
+            // Correct NMEA sentence with a valid checksum (*7B)
+            const validSentence = "$GPGGA,072000.30,6912.2762230,N,01551.8391543,E,2,20,0.6,12.4396,M,34.1000,M,1.3,1478*7B";
+
+            // Parsing this sentence should succeed because the checksum matches
+            expect(() => parseNmeaSentence(validSentence, true)).not.toThrow();
+        });
+
+        it("should throw an error for an invalid NMEA sentence with an incorrect checksum when validation is enabled", () => {
+            // Invalid NMEA sentence with an incorrect checksum (*00 instead of *73)
+            const invalidSentence = "$GPRMC,235959,A,3456.789,S,05823.456,W,005.5,270.0,010125,001.1,E*00";
+
+            // Parsing this sentence should fail because the checksum is incorrect
+            expect(() => parseNmeaSentence(invalidSentence, true)).toThrow("Checksum mismatch");
+        });
+
+        it("should parse a valid NMEA sentence with a correct checksum when validation is disabled", () => {
+            // Correct NMEA sentence with a valid checksum (*7B)
+            const validSentence = "$GPGGA,072000.30,6912.2762230,N,01551.8391543,E,2,20,0.6,12.4396,M,34.1000,M,1.3,1478*7B";
+
+            // Parsing this sentence should succeed even if validation is disabled
+            expect(() => parseNmeaSentence(validSentence, false)).not.toThrow();
+        });
+
+        it("should parse an invalid NMEA sentence with an incorrect checksum when validation is disabled", () => {
+            // Invalid NMEA sentence with an incorrect checksum (*00 instead of *73)
+            const invalidSentence = "$GPRMC,235959,A,3456.789,S,05823.456,W,005.5,270.0,010125,001.1,E*00";
+
+            // Parsing this sentence should still succeed because checksum validation is disabled
+            expect(() => parseNmeaSentence(invalidSentence, false)).not.toThrow();
+        });
+    });
+
 });

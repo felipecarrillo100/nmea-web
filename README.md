@@ -24,26 +24,27 @@ Whether you're building GPS-powered dashboards, marine navigation tools, or IoT 
 ### **📡 Supported NMEA Sentences**
 - **GGA**: Global Positioning System Fix Data  
   Extract vital GPS data such as:
-    - Time (UTC)
-    - Latitude and Longitude
-    - Fix Type (No Fix, GPS Fix, DGPS Fix)
-    - Satellites in View
-    - Altitude (meters)
-    - Geoidal Separation
-    - Differential GPS Data (optional)
+  - Time (UTC)
+  - Latitude and Longitude
+  - Fix Type (No Fix, GPS Fix, DGPS Fix)
+  - Satellites in View
+  - Altitude (meters)
+  - Geoidal Separation
+  - Differential GPS Data (optional)
 
 - **RMC**: Recommended Minimum Specific GPS/Transit Data  
   Parse essential navigation details:
-    - Date and Time (UTC)
-    - Latitude and Longitude
-    - Speed (knots)
-    - Track True (heading in degrees)
-    - Magnetic Variation
-    - FAA Mode Indicator
+  - Date and Time (UTC)
+  - Latitude and Longitude
+  - Speed (knots)
+  - Track True (heading in degrees)
+  - Magnetic Variation
+  - FAA Mode Indicator
 
 ### **🔧 Intuitive API**
 - Simple function calls to parse NMEA sentences into structured objects.
 - Handles optional fields gracefully, ensuring robust performance even with incomplete data.
+- **Optional checksum validation**: Validate the checksum of NMEA sentences, or disable it for faster parsing when working with trusted data sources.
 
 ### **📖 Compact and Minimalistic**
 - No unnecessary features or bloated functionality—focus on what matters most.
@@ -59,27 +60,27 @@ Simply copy the code into your project or use npm
 npm install nmea-web
 ```
 
-### Usage
+## Usage
 ```typescript
-import { parseNmeaSentence, GGAPacket, RMCPacket } from "nmea-web";
+import { parseNmeaSentence, NmeaPacket } from "nmea-web";
 
-// Sample NMEA sentences
-const ggaSentence = "$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47";
-const rmcSentence = "$GPRMC,123519,A,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W*6A";
+// Example NMEA sentence
+const sentence = "$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47";
 
-// Parse GGA sentence
-const ggaPacket = parseNmeaSentence(ggaSentence) as GGAPacket;
-console.log("GGA Packet:", ggaPacket);
+// Parse the NMEA sentence
+const packet = parseNmeaSentence(sentence) as NmeaPacket;
 
-// Parse RMC sentence
-const rmcPacket = parseNmeaSentence(rmcSentence) as RMCPacket;
-console.log("RMC Packet:", rmcPacket);
-
-// Access specific fields
-console.log(`Latitude: ${ggaPacket.latitude}, Longitude: ${ggaPacket.longitude}`);
-console.log(`Heading (Track True): ${rmcPacket.trackTrue}`);
+// Detect the packet type and handle accordingly
+if (packet.type === "GGA") {
+  console.log("This is a GGA Packet:");
+  console.log(`Latitude: ${packet.latitude}, Longitude: ${packet.longitude}`);
+} else if (packet.type === "RMC") {
+  console.log("This is an RMC Packet:");
+  console.log(`Speed: ${packet.speed}, Heading: ${packet.trackTrue}`);
+} else {
+  console.log("Unknown packet type:", packet.type);
+}
 ```
-
 ## **Why Choose NMEA-Web?**
 
 - **Zero Dependencies**: No need to install bulky libraries—just lightweight TypeScript code.
@@ -93,6 +94,7 @@ console.log(`Heading (Track True): ${rmcPacket.trackTrue}`);
 
 - **GGA**: Global Positioning System Fix Data
 - **RMC**: Recommended Minimum Specific GPS/Transit Data
+- Advanced checksum validation (optional configurable)
 
 ---
 
@@ -102,7 +104,6 @@ While NMEA-Web focuses on the most critical and widely used sentences, it curren
 
 - Other NMEA sentence types (e.g., VTG, GSA, GSV, etc.)
 - Proprietary sentences or custom extensions
-- Advanced checksum validation (basic parsing assumes valid input)
 
 ---
 
