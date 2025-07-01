@@ -62,7 +62,7 @@ npm install nmea-web
 
 ## Usage
 ```typescript
-import { parseNmeaSentence, NmeaPacket } from "nmea-web";
+import { parseNmeaSentence, NmeaPacket, GGAPacket, RMCPacket } from "nmea-web";
 
 // Example NMEA sentence
 const sentence = "$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47";
@@ -72,11 +72,15 @@ const packet = parseNmeaSentence(sentence) as NmeaPacket;
 
 // Detect the packet type and handle accordingly
 if (packet.type === "GGA") {
+  const ggaPacket = packet as GGAPacket; // Typecast to GGAPacket
   console.log("This is a GGA Packet:");
-  console.log(`Latitude: ${packet.latitude}, Longitude: ${packet.longitude}`);
+  console.log(`Latitude: ${ggaPacket.latitude}, Longitude: ${ggaPacket.longitude}`);
+  console.log(`Altitude: ${ggaPacket.altitude} meters`);
 } else if (packet.type === "RMC") {
+  const rmcPacket = packet as RMCPacket; // Typecast to RMCPacket
   console.log("This is an RMC Packet:");
-  console.log(`Speed: ${packet.speed}, Heading: ${packet.trackTrue}`);
+  console.log(`Speed: ${rmcPacket.speed} knots, Heading: ${rmcPacket.trackTrue} degrees`);
+  console.log(`Date: ${rmcPacket.date}, Time: ${rmcPacket.time}`);
 } else {
   console.log("Unknown packet type:", packet.type);
 }
