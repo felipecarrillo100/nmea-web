@@ -3,7 +3,6 @@
 // This library is open source and available under the [MIT License](https://opensource.org/licenses/MIT). Contributions and feedback are welcome!
 // Author: Felipe Carrillo
 
-
 export interface Packet {
     sentenceId: string;
     talkerId: string;
@@ -73,28 +72,21 @@ function parseDateTime(dateStr: string, timeStr: string): Date {
     return new Date(Date.UTC(yy, mo, dd, hh, mm, ss));
 }
 
-export function parseNmeaSentence(sentence: string, enableChecksum=false): Packet {
-    // Ensure the sentence starts with "$" and contains a "*"
+export function parseNmeaSentence(sentence: string, enableChecksum = false): Packet {
     if (!sentence.startsWith("$") || !sentence.includes("*")) {
         throw new Error("Invalid NMEA sentence");
     }
     const [dataPart, checksum] = sentence.slice(1).split("*");
 
-    // Split the sentence into the data part for basic validation
-    if (!enableChecksum) {
-        const match = sentence.match(/\$(.*)\*(\w{2})$/);
-        if (!match) {
-            throw new Error("Invalid NMEA sentence: unable to extract checksum");
-        }
-    } else {
+    if (enableChecksum) {
         // Perform XOR checksum validation
         const calculatedChecksum = calculateChecksum(dataPart);
         if (calculatedChecksum !== parseInt(checksum, 16)) {
-            throw new Error("Checksum mismatch");
+            throw new Error(`Checksum mismatch: expected ${checksum}, calculated ${calculatedChecksum.toString(16).toUpperCase()}`);
         }
     }
 
-    const sentenceData = `$`+dataPart;
+    const sentenceData = `$` + dataPart;
 
     const parts = sentenceData.slice(1).split(",");
     const id = parts[0];
@@ -113,15 +105,11 @@ export function parseNmeaSentence(sentence: string, enableChecksum=false): Packe
 
 function calculateChecksum(nmeaData: string): number {
     let checksum = 0;
-
-    // Iterate over each character in the string
     for (let i = 0; i < nmeaData.length; i++) {
-        checksum ^= nmeaData.charCodeAt(i); // XOR each character's ASCII value
+        checksum ^= nmeaData.charCodeAt(i);
     }
-
     return checksum;
 }
-
 
 function parseGGA(parts: string[], talkerId: string, sentenceId: string): GGAPacket {
     const time = parseTime(parts[1]);
