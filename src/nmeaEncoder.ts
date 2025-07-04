@@ -1,15 +1,44 @@
+/**
+ * Represents the input track position used for encoding NMEA sentences.
+ */
 export interface TrackPosition {
+    /** Latitude in decimal degrees */
     latitude: number;
+
+    /** Longitude in decimal degrees */
     longitude: number;
-    altitude: number; // in meters
-    speed: number;    // in m/s
-    heading: number;  // in degrees
-    timestamp?: number; // optional, Unix epoch millis
+
+    /** Altitude in meters above mean sea level */
+    altitude: number;
+
+    /** Speed in meters per second */
+    speed: number;
+
+    /** Heading in degrees relative to true north */
+    heading: number;
+
+    /**
+     * Optional timestamp associated with the position, in ISO 8601 format.
+     * If provided, it will be used unless overridden by `EncodeOptions.timestamp`.
+     */
+    timestamp?: number;
 }
 
+/**
+ * Options to control how NMEA sentences are generated.
+ */
 export interface EncodeOptions {
-    timestamp?: number;  // overrides pos.timestamp if set
-    includeMs?: boolean; // default false
+    /**
+     * Optional UNIX timestamp (milliseconds since epoch) used for encoding time/date fields.
+     * If omitted, the encoder will fall back to `TrackPosition.timestamp`, or finally to `Date.now()`.
+     */
+    timestamp?: number;
+
+    /**
+     * Whether to include milliseconds in the encoded time field.
+     * Default is `false` to comply with standard NMEA formats.
+     */
+    includeMs?: boolean;
 }
 
 function pad(num: number, width: number, precision = 0): string {
@@ -71,6 +100,29 @@ function resolveTime(pos: TrackPosition, options?: EncodeOptions): Date {
     return new Date();
 }
 
+/**
+ * Generates a NMEA GPRMC (Recommended Minimum Navigation Information) sentence
+ * from the provided track position data.
+ *
+ * The function encodes:
+ * - UTC time (optionally including milliseconds)
+ * - Latitude and longitude (in degrees and decimal minutes)
+ * - Speed over ground (converted to knots)
+ * - Course over ground (true heading)
+ * - UTC date
+ *
+ * Time resolution is determined in this order of precedence:
+ * 1. `options.timestamp` (numeric, UTC milliseconds)
+ * 2. `pos.timestamp` (ISO string or numeric)
+ * 3. Current system time
+ *
+ * @param pos - The track position data (latitude, longitude, altitude, speed, heading, optional timestamp).
+ * @param options - Optional settings:
+ *   - `timestamp`: A UTC timestamp in milliseconds.
+ *   - `includeMs`: Whether to include milliseconds in the encoded time. Defaults to false.
+ *
+ * @returns A `$GPRMC` sentence string with valid NMEA checksum.
+ */
 export function generateGPRMC(pos: TrackPosition, options?: EncodeOptions): string {
     const speedKnots = pos.speed * 1.94384;
     const time = resolveTime(pos, options);
@@ -82,6 +134,30 @@ export function generateGPRMC(pos: TrackPosition, options?: EncodeOptions): stri
     return sentence;
 }
 
+/**
+ * Generates a NMEA GPGGA (Global Positioning System Fix Data) sentence
+ * from the provided track position data.
+ *
+ * The function encodes:
+ * - UTC time (optionally including milliseconds)
+ * - Latitude and longitude (in degrees and decimal minutes)
+ * - Fix quality (set to 1 = GPS fix)
+ * - Number of satellites (hardcoded to 08)
+ * - HDOP (hardcoded to 0.9)
+ * - Altitude (in meters)
+ *
+ * Time resolution is determined in this order of precedence:
+ * 1. `options.timestamp` (numeric, UTC milliseconds)
+ * 2. `pos.timestamp` (ISO string or numeric)
+ * 3. Current system time
+ *
+ * @param pos - The track position data (latitude, longitude, altitude, optional timestamp).
+ * @param options - Optional settings:
+ *   - `timestamp`: A UTC timestamp in milliseconds.
+ *   - `includeMs`: Whether to include milliseconds in the encoded time. Defaults to false.
+ *
+ * @returns A `$GPGGA` sentence string with valid NMEA checksum.
+ */
 export function generateGPGGA(pos: TrackPosition, options?: EncodeOptions): string {
     const time = resolveTime(pos, options);
     const includeMs = options?.includeMs ?? false;

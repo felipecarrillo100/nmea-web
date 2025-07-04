@@ -3,37 +3,88 @@
 // This library is open source and available under the [MIT License](https://opensource.org/licenses/MIT). Contributions and feedback are welcome!
 // Author: Felipe Carrillo
 
+/**
+ * Base interface for all parsed NMEA sentence packets.
+ */
 export interface Packet {
+    /** The three-letter sentence identifier (e.g. `GGA`, `RMC`) */
     sentenceId: string;
+
+    /** The two-letter talker ID (e.g. `GP` for GPS) */
     talkerId: string;
+
+    /** The type of message (typically same as `sentenceId`) */
     type: string;
 }
 
+/**
+ * Represents the parsed data from a `$GxGGA` (Global Positioning System Fix Data) sentence.
+ * This provides essential fix data such as time, position, fix quality, and altitude.
+ */
 export interface GGAPacket extends Packet {
+    /** UTC time of the fix (may be `undefined` if not present or invalid) */
     time: Date | undefined;
+
+    /** Latitude in decimal degrees */
     latitude: number;
+
+    /** Longitude in decimal degrees */
     longitude: number;
+
+    /** GPS fix quality (0 = invalid, 1 = GPS fix, 2 = DGPS fix, etc.) */
     fixType: number;
+
+    /** Number of satellites in use */
     satellitesInView: number;
+
+    /** Horizontal dilution of precision */
     horizontalDilution: number;
+
+    /** Altitude in meters above mean sea level */
     altitudeMeters: number;
+
+    /** Height of geoid above WGS84 ellipsoid in meters */
     geoidalSeperation: number;
+
+    /** Age of differential GPS data (in seconds), if available */
     differentialAge?: number;
+
+    /** Differential reference station ID, if available */
     differentialRefStn?: string;
 }
 
+/**
+ * Represents the parsed data from a `$GxRMC` (Recommended Minimum Navigation Information) sentence.
+ * This sentence provides essential navigation data such as time, position, speed, and course.
+ */
 export interface RMCPacket extends Packet {
+    /** Combined UTC date and time of fix as a JavaScript `Date` */
     datetime: Date;
+
+    /** Status character: 'A' = active, 'V' = void */
     status: string;
+
+    /** Latitude in decimal degrees */
     latitude: number;
+
+    /** Longitude in decimal degrees */
     longitude: number;
+
+    /** Speed over ground in knots */
     speedKnots: number;
+
+    /** Track angle in degrees (true north) */
     trackTrue: number;
+
+    /** Magnetic variation in degrees */
     variation: number;
+
+    /** Direction of magnetic variation: 'E' = East, 'W' = West */
     variationPole: string;
+
+    /** FAA mode indicator (e.g. 'A' = Autonomous, 'D' = Differential, 'N' = Not valid) */
     faaMode: string;
 }
-
 function parseLatitude(raw: string, direction: string): number {
     if (!raw) return NaN;
     const deg = parseInt(raw.slice(0, 2), 10);
@@ -72,6 +123,23 @@ function parseDateTime(dateStr: string, timeStr: string): Date {
     return new Date(Date.UTC(yy, mo, dd, hh, mm, ss));
 }
 
+/**
+ * Parses a NMEA sentence string and returns the corresponding decoded packet.
+ *
+ * This function supports `$GPGGA` and `$GPRMC` sentences and returns their structured representation.
+ * Optionally, it can also validate the checksum of the sentence.
+ *
+ * ### Supported sentence types:
+ * - `GGA`: Global Positioning System Fix Data
+ * - `RMC`: Recommended Minimum Navigation Information
+ *
+ * @param sentence - A valid NMEA 0183 sentence string (e.g., `$GPGGA,...*hh`).
+ * @param enableChecksum - Optional flag to validate the checksum (default: `false`).
+ *
+ * @throws If the sentence is malformed, has a checksum mismatch (if enabled), or if the sentence type is unsupported.
+ *
+ * @returns A `Packet` object representing the decoded data, either a `GGAPacket` or `RMCPacket`.
+ */
 export function parseNmeaSentence(sentence: string, enableChecksum = false): Packet {
     if (!sentence.startsWith("$") || !sentence.includes("*")) {
         throw new Error("Invalid NMEA sentence");
