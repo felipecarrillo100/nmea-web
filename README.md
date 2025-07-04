@@ -8,6 +8,8 @@
 
 NMEA-Web is a **compact and minimalistic TypeScript library** designed to parse NMEA 0183 sentences directly in your web applications. With a focus on **speed**, **simplicity**, and **zero dependencies**, this library provides developers with the essential tools to extract navigational data from NMEA sentences.
 
+In addition to parsing, NMEA-Web now includes a **NMEA Encoder** module for generating valid NMEA 0183 sentences (`$GPRMC` and `$GPGGA`) from position data.
+
 Whether you're building GPS-powered dashboards, marine navigation tools, or IoT applications, NMEA-Web delivers **high-performance parsing** with a clean and intuitive API.
 
 ---
@@ -61,6 +63,7 @@ npm install nmea-web
 ```
 
 ## Usage
+### Decoding:
 ```typescript
 import { parseNmeaSentence, NmeaPacket, GGAPacket, RMCPacket } from "nmea-web";
 
@@ -84,6 +87,23 @@ if (packet.type === "GGA") {
 } else {
   console.log("Unknown packet type:", packet.type);
 }
+```
+### Encoding:
+```typescript
+// Encoding example
+const pos: TrackPosition = {
+  latitude: 48.1173,
+  longitude: 11.5167,
+  altitude: 545.4,
+  speed: 12.0,    // meters per second
+  heading: 84.4   // degrees
+};
+
+const gprmcSentence = generateGPRMC(pos);
+const gpggaSentence = generateGPGGA(pos);
+
+console.log(gprmcSentence);
+console.log(gpggaSentence);
 ```
 ## **Why Choose NMEA-Web?**
 
